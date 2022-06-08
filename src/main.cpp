@@ -172,29 +172,10 @@ int main()
     while(true)
     {
         
-
-    //while(true)
-    //{
         write(2, "5\n" , 1);
 
         struct sockaddr_in	clientaddr = {};
         socklen_t			len = sizeof(clientaddr);
-        //int					client_socket = accept(_socket, (struct sockaddr *) &clientaddr, &len);
-
-        // if (fcntl(client_socket, F_SETFL, O_NONBLOCK) < 0) {
-        //     std::cerr << "fcntl nonblock failure" << std::endl;
-        //     exit(EXIT_FAILURE);
-        // }
-
-        // _polls.push_back((pollfd){client_socket, POLLIN | POLLOUT | POLLHUP, 0});
-
-        // char host[buffSize];
-        // if (getnameinfo((struct sockaddr *) &clientaddr, len, &host[0], buffSize, nullptr, 0, 0)) {
-        //     std::cerr << "getnameinfo failure" << std::endl;
-        //     exit(EXIT_FAILURE);
-        // }
-        // _service->addUser(client_socket, host);
-    
 
         sock_client = accept(listener, (struct sockaddr *) &clientaddr, &len);
         if(sock_client < 0)
@@ -203,12 +184,13 @@ int main()
             continue;
         }
 
-        char host[BUF_SIZE] = {};
-        inet_ntop(AF_INET, &(clientaddr.sin_addr), host, BUF_SIZE);
-        // if (getnameinfo((struct sockaddr *) &clientaddr, len, &host[0], BUF_SIZE, nullptr, 0, 0)) {
-        //     std::cerr << "getnameinfo failure" << std::endl;
-        //     exit(EXIT_FAILURE);
-        // }
+        char host_ip[BUF_SIZE] = {};
+        
+        //if (getnameinfo((struct sockaddr *) &clientaddr, len, &host[0], BUF_SIZE, nullptr, 0, 0)) {
+        if (!(inet_ntop(AF_INET, &(clientaddr.sin_addr), host_ip, BUF_SIZE))) {
+            std::cerr << "getnameinfo failure" << std::endl;
+            exit(EXIT_FAILURE);
+        }
         write(2, "5-6/n" , 3);
 
         //###########################socket server############################
@@ -232,19 +214,12 @@ int main()
         }
 //###########################socket server############################
 
-        std::thread thrd_client(client_processing, sock_client, sock_server, host);
+        std::thread thrd_client(client_processing, sock_client, sock_server, host_ip);
         write(2, "6\n" , 1);
         thrd_client.detach();
         write(2, "7\n" , 1);
-        //std::cerr << 12 << std::endl;
-        //close(sock_client);
-
-
-
 
     }
-    //close(sock_server);
-    
 
     return 0;
 }
