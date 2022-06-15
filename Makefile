@@ -10,7 +10,7 @@ OBJECT			=	$(SOURCE:.cpp=.o)
 
 CXX				= 	c++
 
-CXXFLAGS		= 	-std=c++14
+CXXFLAGS		= 	-Wall -Wextra -Werror -std=c++14
 
 #-Wall -Wextra -Werror
 

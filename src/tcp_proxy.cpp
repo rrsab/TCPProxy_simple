@@ -63,7 +63,7 @@ void write_log(std::string source, std::string direction, char str1 [BUF_SIZE], 
 
 public:
 
-const char *const getHost_ip() const
+const char *getHost_ip() const
 {
     return host_ip;
 }
