@@ -1,25 +1,9 @@
-//#include <sys/types.h>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
 #include <unistd.h>
-//#include <stdlib.h>
-//#include <sys/stat.h>
 #include <arpa/inet.h>
-//#include <iostream>
-
-//#include <cstdlib>
-//#include <cstddef>
-//#include <string>
 #include <fstream>
-//#include <ctime>
-
 #include <iostream>
-//#include <string.h>
-//#include <netdb.h>
-
 #include <thread>
 #include <fcntl.h>
-//#include <time.h>
 
 #define BUF_SIZE 8192
 #define MAX_CONNECT_REQUESTS 1024
@@ -44,9 +28,43 @@ private:
     const std::string   _filename_log;
     char host_ip[BUF_SIZE];
 
+std::string print_time() // определение текущего времени
+{
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer [80];
+
+    time (&rawtime);
+    timeinfo = localtime (&rawtime);
+    strftime (buffer,80,"%c",timeinfo);
+    return buffer;
+}
+
+/* Вывод в лог файл принятых и отправленных пакетов */
+void write_log(std::string source, std::string direction, char str1 [BUF_SIZE], const size_t& bytes_transferred)
+{
+    std::ofstream output_log_;   
+    std::string filename_log_ = "tcpproxy.log";
+    std::string str;
+    for (size_t i = 0; i < bytes_transferred; i++)
+    {
+        str += str1[i];
+    }
+
+    output_log_.open(filename_log_.c_str(), std::ios::binary | std::ios::app);
+    if (!output_log_.is_open()) 
+    {
+        std::cerr << "Cannot open \"" << filename_log_ << "\"" << std::endl;
+        return ;
+    }
+    output_log_ << print_time() << " | " << source << " | " << direction << " | "  << str << std::endl;
+    output_log_.close();
+}
+
 public:
 
-const char *const getHost_ip() const {
+const char *const getHost_ip() const
+{
     return host_ip;
 }
 
@@ -82,7 +100,7 @@ int socket_proxy() // создание сокета прокси, "прослу�
 
 int socket_client() /* установление соединения с клиентом */
 {
-    /* установливаем соединения с клиентом и получаем файловый дискриптор 
+    /* установливаем соединения с клиентом и получаем файловый дескриптор 
     соединения */
     int sock_client = accept(listener, (struct sockaddr *) &clientaddr, &len);
     if(sock_client < 0)
@@ -119,38 +137,6 @@ int socket_server() /* установление соединения с серв
     return sock_server;
 }
 
-std::string print_time() // определение текущего времени
-{
-    time_t rawtime;
-    struct tm * timeinfo;
-    char buffer [80];
-
-    time (&rawtime);
-    timeinfo = localtime (&rawtime);
-    strftime (buffer,80,"%c",timeinfo);
-    return buffer;
-}
-/* Вывод в лог файл принятых и отправленных пакетов */
-void write_log(std::string source, std::string direction, char str1 [BUF_SIZE], const size_t& bytes_transferred)
-    {
-    std::ofstream output_log_;   
-    std::string filename_log_ = "tcpproxy.log";
-    std::string str;
-    for (size_t i = 0; i < bytes_transferred; i++)
-    {
-        str += str1[i];
-    }
-
-    output_log_.open(filename_log_.c_str(), std::ios::binary | std::ios::app);
-    if (!output_log_.is_open()) 
-    {
-        std::cerr << "Cannot open \"" << filename_log_ << "\"" << std::endl;
-        return ;
-    }
-    output_log_ << print_time() << " | " << source << " | " << direction << " | "  << str << std::endl;
-    output_log_.close();
-    }
-
 /* получение данных от клиента, отправление серверу и наоборот */
 void client_processing(int sock_client, int sock_server, std::string host_ip) 
 {
@@ -182,7 +168,6 @@ void client_processing(int sock_client, int sock_server, std::string host_ip)
             std::cout << "client -> server : " << bytes_read << '\\' << bytes_write << std::endl;
         }
         // получение данных от сервера и отправление клиенту
-
         bytes_read = recv(sock_server, buf, BUF_SIZE, 0);
         if (bytes_read <= 0)
         {
@@ -209,7 +194,6 @@ tcp_proxy(unsigned short local_port, unsigned short forward_port, std::string lo
             _filename_log(filename_log) {}
 
 ~tcp_proxy() {}
-
 };
 
 
@@ -234,8 +218,7 @@ int main(int argc, char* argv[])
 
     tcp_proxy proxy(local_port, forward_port, local_host, forward_host, filename_log);
     proxy.socket_proxy();
-    
-
+   
     while (true)
     {
         sock_client = proxy.socket_client();
