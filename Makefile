@@ -2,15 +2,17 @@
 
 NAME			= proxy
 
-SOURCE			= src/main.cpp src/socket_wrap.cpp
+SOURCE			= src/tcp_proxy.cpp
 
-HEADERS			= src/socket_wrap.hpp
+HEADERS			= src/tcp_proxy.hpp
 
 OBJECT			=	$(SOURCE:.cpp=.o)
 
 CXX				= 	c++
 
-CXXFLAGS		= 	-Wall -Wextra -Werror -std=c++14
+CXXFLAGS		= 	-std=c++14
+
+#-Wall -Wextra -Werror
 
 LD_FLAGS 		= -lpthread
 
