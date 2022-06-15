@@ -44,17 +44,17 @@ std::string print_time() // определение текущего времен
 void write_log(std::string source, std::string direction, char str1 [BUF_SIZE], const size_t& bytes_transferred)
 {
     std::ofstream output_log_;   
-    std::string filename_log_ = "tcpproxy.log";
+    //std::string filename_log_ = "tcpproxy.log";
     std::string str;
     for (size_t i = 0; i < bytes_transferred; i++)
     {
         str += str1[i];
     }
 
-    output_log_.open(filename_log_.c_str(), std::ios::binary | std::ios::app);
+    output_log_.open(_filename_log.c_str(), std::ios::binary | std::ios::app);
     if (!output_log_.is_open()) 
     {
-        std::cerr << "Cannot open \"" << filename_log_ << "\"" << std::endl;
+        std::cerr << "Cannot open \"" << _filename_log << "\"" << std::endl;
         return ;
     }
     output_log_ << print_time() << " | " << source << " | " << direction << " | "  << str << std::endl;
@@ -163,7 +163,7 @@ void client_processing(int sock_client, int sock_server, std::string host_ip)
                 break;
             }
         } else {
-            write_log(host_ip, "client-server", buf, bytes_read);
+            write_log(host_ip, "client -> server", buf, bytes_read);
             bytes_write = send(sock_server, buf, bytes_read, 0);
             std::cout << "client -> server : " << bytes_read << '\\' << bytes_write << std::endl;
         }
@@ -178,7 +178,7 @@ void client_processing(int sock_client, int sock_server, std::string host_ip)
                 break;
             }
         } else {
-            write_log(host_ip, "server->client", buf, bytes_read);
+            write_log(host_ip, "server -> client", buf, bytes_read);
             bytes_write = send(sock_client, buf, bytes_read, 0);
             std::cout << "server -> client : " << bytes_read << '\\' << bytes_write << std::endl;
         }

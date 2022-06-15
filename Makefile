@@ -12,8 +12,6 @@ CXX				= 	c++
 
 CXXFLAGS		= 	-Wall -Wextra -Werror -std=c++14
 
-#-Wall -Wextra -Werror
-
 LD_FLAGS 		= -lpthread
 
 RESET			= 	\033[0m
