@@ -1,9 +1,11 @@
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <mutex>
 #include <fstream>
 #include <iostream>
 #include <thread>
 #include <fcntl.h>
+
 
 #define BUF_SIZE 8192
 #define MAX_CONNECT_REQUESTS 1024
@@ -27,6 +29,7 @@ private:
     const std::string   _forward_host;
     const std::string   _filename_log;
     char host_ip[BUF_SIZE];
+    std::mutex               mtx;
 
 std::string print_time() // определение текущего времени
 {
@@ -40,17 +43,17 @@ std::string print_time() // определение текущего времен
     return buffer;
 }
 
-/* Вывод в лог файл принятых и отправленных пакетов */
+/* Вывод в лог файл принятых и отправленных данных */
 void write_log(std::string source, std::string direction, char str1 [BUF_SIZE], const size_t& bytes_transferred)
 {
+    std::unique_lock<std::mutex> ul(mtx, std::defer_lock);
     std::ofstream output_log_;   
-    //std::string filename_log_ = "tcpproxy.log";
     std::string str;
     for (size_t i = 0; i < bytes_transferred; i++)
     {
         str += str1[i];
     }
-
+    ul.lock();
     output_log_.open(_filename_log.c_str(), std::ios::binary | std::ios::app);
     if (!output_log_.is_open()) 
     {
