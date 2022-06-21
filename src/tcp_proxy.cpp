@@ -84,7 +84,12 @@ int socket_proxy() // создание сокета прокси, "прослу�
     /* Привязка сокета прокси к паре IP-адрес/Порт */
     addr.sin_family = AF_INET;
     addr.sin_port = htons(_local_port);
-    addr.sin_addr.s_addr = inet_addr(_local_host.c_str());
+    if (inet_pton(AF_INET, _local_host.c_str(), &(addr.sin_addr)) < 0)
+    {
+        cerr<<"Error: inet_pton could not convert ip address local_host"<<endl;
+        exit(EXIT_FAILURE);
+    }
+    
     setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &restrict, sizeof(int));
     if(bind(listener, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
@@ -131,7 +136,11 @@ int socket_server() /* установление соединения с серв
     /* привязка сокета для соединения с севером к его паре IP-адрес/Порт */
     addr_server.sin_family = AF_INET;
     addr_server.sin_port = htons(_forward_port);
-    addr_server.sin_addr.s_addr = inet_addr(_forward_host.c_str());
+    if (inet_pton(AF_INET, _forward_host.c_str(), &(addr_server.sin_addr)) < 0)
+    {
+        cerr<<"Error: inet_pton could not convert ip address forward host"<<endl;
+        exit(EXIT_FAILURE);
+    }
     if(connect(sock_server, (struct sockaddr *)&addr_server, sizeof(addr_server)) < 0)
     {
         cerr << "Error: connecting to server" << endl;
