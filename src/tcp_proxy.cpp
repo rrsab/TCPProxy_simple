@@ -5,6 +5,7 @@
 #include <iostream>
 #include <thread>
 #include <fcntl.h>
+#include <cstring>
 
 
 #define BUF_SIZE 8192
@@ -82,9 +83,10 @@ int socket_proxy() // создание сокета прокси, "прослу�
         exit(EXIT_FAILURE);
     }
     /* Привязка сокета прокси к паре IP-адрес/Порт */
+    memset(&addr, 0, sizeof addr);
     addr.sin_family = AF_INET;
     addr.sin_port = htons(_local_port);
-    if (inet_pton(AF_INET, _local_host.c_str(), &(addr.sin_addr)) < 0)
+    if (inet_pton(AF_INET, _local_host.c_str(), &(addr.sin_addr)) <= 0)
     {
         cerr<<"Error: inet_pton could not convert ip address local_host"<<endl;
         exit(EXIT_FAILURE);
@@ -93,7 +95,7 @@ int socket_proxy() // создание сокета прокси, "прослу�
     setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &restrict, sizeof(int));
     if(bind(listener, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
-        cerr<<"Error: listener bind"<<endl;
+        cerr << "Error: listener bind" << endl;
         exit(EXIT_FAILURE);
     }
     /* "Прослушивание" сокета */
@@ -110,15 +112,16 @@ int socket_client() /* установление соединения с клие
 {
     /* установливаем соединения с клиентом и получаем файловый дескриптор 
     соединения */
+    memset(&clientaddr, 0, sizeof clientaddr);
     int sock_client = accept(listener, (struct sockaddr *) &clientaddr, &len);
     if(sock_client < 0)
     {
-        cerr<<"Error: accepting from client socket"<<endl;
+        cerr << "Error: accepting from client socket" << endl;
         exit(EXIT_FAILURE);
     }
     /* сохраняем ip адрес клиента с переменную host_ip */   
     if (!(inet_ntop(AF_INET, &(clientaddr.sin_addr), host_ip, BUF_SIZE))) {
-        std::cerr << "getnameinfo failure" << std::endl;
+        cerr << "getnameinfo failure" << endl;
         exit(EXIT_FAILURE);
     }
     return sock_client;
@@ -134,9 +137,10 @@ int socket_server() /* установление соединения с серв
         exit(EXIT_FAILURE);
     }
     /* привязка сокета для соединения с севером к его паре IP-адрес/Порт */
+    memset(&addr_server, 0, sizeof addr_server);
     addr_server.sin_family = AF_INET;
     addr_server.sin_port = htons(_forward_port);
-    if (inet_pton(AF_INET, _forward_host.c_str(), &(addr_server.sin_addr)) < 0)
+    if (inet_pton(AF_INET, _forward_host.c_str(), &(addr_server.sin_addr)) <= 0)
     {
         cerr<<"Error: inet_pton could not convert ip address forward host"<<endl;
         exit(EXIT_FAILURE);
@@ -169,7 +173,7 @@ void client_processing(int sock_client, int sock_server, std::string host_ip)
         if (bytes_read <= 0)
         {
             if (errno != EWOULDBLOCK) {
-                std::cerr << "Error: read(sock_client)" << std::endl;
+                cerr << "Error: read(sock_client)" << endl;
                 close(sock_server);
                 shutdown(sock_client, 1);
                 break;
@@ -177,14 +181,14 @@ void client_processing(int sock_client, int sock_server, std::string host_ip)
         } else {
             write_log(host_ip, "client -> server", buf, bytes_read);
             bytes_write = send(sock_server, buf, bytes_read, 0);
-            std::cout << "client -> server : " << bytes_read << '\\' << bytes_write << std::endl;
+            cout << "client -> server : " << bytes_read << '\\' << bytes_write << endl;
         }
         // получение данных от сервера и отправление клиенту
         bytes_read = recv(sock_server, buf, BUF_SIZE, 0);
         if (bytes_read <= 0)
         {
             if (errno != EWOULDBLOCK) {
-                std::cerr << "Error: read(sock_server)" << std::endl;
+                cerr << "Error: read(sock_server)" << endl;
                 close(sock_server);
                 shutdown(sock_client, 1);
                 break;
@@ -192,7 +196,7 @@ void client_processing(int sock_client, int sock_server, std::string host_ip)
         } else {
             write_log(host_ip, "server -> client", buf, bytes_read);
             bytes_write = send(sock_client, buf, bytes_read, 0);
-            std::cout << "server -> client : " << bytes_read << '\\' << bytes_write << std::endl;
+            cout << "server -> client : " << bytes_read << '\\' << bytes_write << endl;
         }
 
         nanosleep(&sleep_interval, nullptr);
@@ -215,7 +219,7 @@ int main(int argc, char* argv[])
 {
     if (argc != 5)
     {
-        std::cerr << "usage: tcpproxy_server <local host ip> <local port> <forward host ip> <forward port>" << std::endl;
+        std::cerr << "usage: proxy <local host ip> <local port> <forward host ip> <forward port>" << std::endl;
         return 1;
     }
 
